@@ -1,63 +1,64 @@
 package app.aaps.plugins.constraints.objectives.objectives
 
-import app.aaps.core.interfaces.resources.TextResolver
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.keys.BooleanNonKey
 import app.aaps.core.keys.interfaces.Preferences
-import app.aaps.plugins.constraints.ConstraintsStrings
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesIntoMap
-import dev.zacsweers.metro.Inject
-import dev.zacsweers.metro.IntKey
-import dev.zacsweers.metro.SingleIn
-import dev.zacsweers.metro.binding
+import app.aaps.plugins.constraints.R
+import javax.inject.Inject
+import javax.inject.Singleton
 
-// Contributed rather than listed in a graph. ObjectivesPlugin takes List<Objective> and is itself
-// contributed to AppScope, so the objectives have to be reachable from the same graph.
-@ContributesIntoMap(AppScope::class, binding = binding<Objective>())
-@IntKey(1)
-@SingleIn(AppScope::class)
-@Inject
-class Objective1(
+@Singleton
+class Objective1 @Inject constructor(
     preferences: Preferences,
-    rh: TextResolver,
-    durationText: DurationText,
-    dateUtil: DateUtil
-) : Objective(preferences, rh, dateUtil, durationText, "usage", ConstraintsStrings.objectives_usage_objective, ConstraintsStrings.objectives_usage_gate) {
+    rh: ResourceHelper,
+    dateUtil: DateUtil,
+    private val activePlugin: ActivePlugin
+) : Objective(preferences, rh, dateUtil, "usage", R.string.objectives_usage_objective, R.string.objectives_usage_gate) {
+
+    val actionsPlugin: PluginBase
+        get() = activePlugin.getSpecificPluginsListByInterface(app.aaps.core.interfaces.actions.Actions::class.java)[0]
 
     init {
-        tasks.add(object : Task(this, ConstraintsStrings.objectives_useprofileswitch) {
-            override suspend fun isCompleted(): Boolean {
+        tasks.add(object : Task(this, R.string.objectives_useprofileswitch) {
+            override fun isCompleted(): Boolean {
                 return preferences.get(BooleanNonKey.ObjectivesProfileSwitchUsed)
             }
         })
-        tasks.add(object : Task(this, ConstraintsStrings.objectives_usedisconnectpump) {
-            override suspend fun isCompleted(): Boolean {
+        tasks.add(object : Task(this, R.string.objectives_usedisconnectpump) {
+            override fun isCompleted(): Boolean {
                 return preferences.get(BooleanNonKey.ObjectivesDisconnectUsed)
             }
-        }.hint(Hint(ConstraintsStrings.disconnectpump_hint)))
-        tasks.add(object : Task(this, ConstraintsStrings.objectives_usereconnectpump) {
-            override suspend fun isCompleted(): Boolean {
+        }.hint(Hint(R.string.disconnectpump_hint)))
+        tasks.add(object : Task(this, R.string.objectives_usereconnectpump) {
+            override fun isCompleted(): Boolean {
                 return preferences.get(BooleanNonKey.ObjectivesReconnectUsed)
             }
-        }.hint(Hint(ConstraintsStrings.disconnectpump_hint)))
-        tasks.add(object : Task(this, ConstraintsStrings.objectives_usetemptarget) {
-            override suspend fun isCompleted(): Boolean {
+        }.hint(Hint(R.string.disconnectpump_hint)))
+        tasks.add(object : Task(this, R.string.objectives_usetemptarget) {
+            override fun isCompleted(): Boolean {
                 return preferences.get(BooleanNonKey.ObjectivesTempTargetUsed)
             }
-        }.hint(Hint(ConstraintsStrings.usetemptarget_hint)))
-        tasks.add(object : Task(this, ConstraintsStrings.objectives_useloop) {
-            override suspend fun isCompleted(): Boolean {
+        }.hint(Hint(R.string.usetemptarget_hint)))
+        tasks.add(object : Task(this, R.string.objectives_useactions) {
+            override fun isCompleted(): Boolean {
+                return preferences.get(BooleanNonKey.ObjectivesActionsUsed) && actionsPlugin.isEnabled() && actionsPlugin.isFragmentVisible()
+            }
+        }.hint(Hint(R.string.useaction_hint)))
+        tasks.add(object : Task(this, R.string.objectives_useloop) {
+            override fun isCompleted(): Boolean {
                 return preferences.get(BooleanNonKey.ObjectivesLoopUsed)
             }
-        }.hint(Hint(ConstraintsStrings.useaction_hint)))
+        }.hint(Hint(R.string.useaction_hint)))
         tasks.add(
-            object : Task(this, ConstraintsStrings.objectives_usescale) {
-                override suspend fun isCompleted(): Boolean {
+            object : Task(this, R.string.objectives_usescale) {
+                override fun isCompleted(): Boolean {
                     return preferences.get(BooleanNonKey.ObjectivesScaleUsed)
                 }
-            }.hint(Hint(ConstraintsStrings.usescale_hint))
-                .learned(Learned(ConstraintsStrings.objectives_usage_learned))
+            }.hint(Hint(R.string.usescale_hint))
+                .learned(Learned(R.string.objectives_usage_learned))
         )
     }
 }

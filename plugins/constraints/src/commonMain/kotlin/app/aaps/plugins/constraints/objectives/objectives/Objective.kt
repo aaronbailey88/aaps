@@ -1,27 +1,28 @@
 package app.aaps.plugins.constraints.objectives.objectives
 
+import android.content.Context
+import android.text.util.Linkify
+import android.widget.CheckBox
+import android.widget.TextView
+import androidx.annotation.StringRes
 import app.aaps.core.data.time.T
-import app.aaps.core.interfaces.resources.TextResolver
+import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.keys.interfaces.Preferences
-import app.aaps.core.keys.interfaces.TextRef
-import app.aaps.plugins.constraints.ConstraintsStrings
+import app.aaps.plugins.constraints.R
 import app.aaps.plugins.constraints.objectives.keys.ObjectivesBooleanComposedKey
 import app.aaps.plugins.constraints.objectives.keys.ObjectivesLongComposedKey
 import kotlinx.coroutines.Runnable
-import kotlin.time.Clock
+import kotlin.math.floor
 
 abstract class Objective(
     val preferences: Preferences,
-    val rh: TextResolver,
+    val rh: ResourceHelper,
     val dateUtil: DateUtil,
-    /** Renders "3 d" and friends. A parameter because Android says it with plurals; see [DurationText]. */
-    val durationText: DurationText,
     private val spName: String,
-    val objective: TextRef,
-    val gate: TextRef
+    @StringRes val objective: Int,
+    @StringRes val gate: Int
 ) {
-
     var startedOn: Long = 0
         get() = preferences.get(ObjectivesLongComposedKey.Started, spName)
         set(value) {
@@ -45,14 +46,15 @@ abstract class Objective(
 
     var tasks: MutableList<Task> = ArrayList()
 
-    suspend fun isCompleted(): Boolean {
-        for (task in tasks) {
-            if (!task.shouldBeIgnored() && !task.isCompleted()) return false
+    val isCompleted: Boolean
+        get() {
+            for (task in tasks) {
+                if (!task.shouldBeIgnored() && !task.isCompleted()) return false
+            }
+            return true
         }
-        return true
-    }
 
-    suspend fun isCompleted(trueTime: Long): Boolean {
+    fun isCompleted(trueTime: Long): Boolean {
         for (task in tasks) {
             if (!task.shouldBeIgnored() && !task.isCompleted(trueTime)) return false
         }
@@ -64,17 +66,17 @@ abstract class Objective(
     val isStarted: Boolean
         get() = startedOn != 0L
 
-    abstract inner class Task(var objective: Objective, val task: TextRef) {
+    abstract inner class Task(var objective: Objective, @StringRes val task: Int) {
 
         var hints = ArrayList<Hint>()
         var learned = ArrayList<Learned>()
 
-        abstract suspend fun isCompleted(): Boolean
+        abstract fun isCompleted(): Boolean
 
-        open suspend fun isCompleted(trueTime: Long): Boolean = isCompleted()
+        open fun isCompleted(trueTime: Long): Boolean = isCompleted()
 
-        open suspend fun progress(): String =
-            rh.gs(if (isCompleted()) ConstraintsStrings.completed_well_done else ConstraintsStrings.not_completed_yet)
+        open val progress: String
+            get() = rh.gs(if (isCompleted()) R.string.completed_well_done else R.string.not_completed_yet)
 
         fun hint(hint: Hint): Task {
             hints.add(hint)
@@ -89,23 +91,32 @@ abstract class Objective(
         open fun shouldBeIgnored(): Boolean = false
     }
 
-    inner class MinimumDurationTask internal constructor(objective: Objective, private val minimumDuration: Long) : Task(objective, ConstraintsStrings.time_elapsed) {
+    inner class MinimumDurationTask internal constructor(objective: Objective, private val minimumDuration: Long) : Task(objective, R.string.time_elapsed) {
 
-        override suspend fun isCompleted(): Boolean =
-            objective.isStarted && Clock.System.now().toEpochMilliseconds() - objective.startedOn >= minimumDuration
+        override fun isCompleted(): Boolean =
+            objective.isStarted && System.currentTimeMillis() - objective.startedOn >= minimumDuration
 
-        override suspend fun isCompleted(trueTime: Long): Boolean {
+        override fun isCompleted(trueTime: Long): Boolean {
             return objective.isStarted && trueTime - objective.startedOn >= minimumDuration
         }
 
-        override suspend fun progress(): String =
-            (getDurationText(Clock.System.now().toEpochMilliseconds() - objective.startedOn)
+        override val progress: String
+            get() = (getDurationText(System.currentTimeMillis() - objective.startedOn)
                 + " / " + getDurationText(minimumDuration))
 
-        private fun getDurationText(duration: Long): String = durationText.format(duration)
+        private fun getDurationText(duration: Long): String {
+            val days = floor(duration.toDouble() / T.days(1).msecs()).toInt()
+            val hours = floor(duration.toDouble() / T.hours(1).msecs()).toInt()
+            val minutes = floor(duration.toDouble() / T.mins(1).msecs()).toInt()
+            return when {
+                days > 0  -> rh.gq(app.aaps.core.ui.R.plurals.days, days, days)
+                hours > 0 -> rh.gq(app.aaps.core.ui.R.plurals.hours, hours, hours)
+                else      -> rh.gq(app.aaps.core.ui.R.plurals.minutes, minutes, minutes)
+            }
+        }
     }
 
-    inner class UITask internal constructor(objective: Objective, task: TextRef, private val spIdentifier: String, val code: (task: UITask, callback: Runnable, showMessage: (String) -> Unit) -> Unit) : Task(objective, task) {
+    inner class UITask internal constructor(objective: Objective, @StringRes task: Int, private val spIdentifier: String, val code: (context: Context, task: UITask, callback: Runnable) -> Unit) : Task(objective, task) {
 
         var answered: Boolean = false
             set(value) {
@@ -117,10 +128,10 @@ abstract class Objective(
             answered = preferences.get(ObjectivesBooleanComposedKey.AnsweredUi, spIdentifier)
         }
 
-        override suspend fun isCompleted(): Boolean = answered
+        override fun isCompleted(): Boolean = answered
     }
 
-    inner class ExamTask internal constructor(objective: Objective, task: TextRef, val question: TextRef, private val spIdentifier: String) : Task(objective, task) {
+    inner class ExamTask internal constructor(objective: Objective, @StringRes task: Int, @StringRes val question: Int, private val spIdentifier: String) : Task(objective, task) {
 
         var options = ArrayList<Option>()
         var answered: Boolean = false
@@ -139,9 +150,9 @@ abstract class Objective(
             disabledTo = preferences.get(ObjectivesLongComposedKey.DisabledTo, spIdentifier)
         }
 
-        override suspend fun isCompleted(): Boolean = answered
+        override fun isCompleted(): Boolean = answered
 
-        fun isEnabledAnswer(): Boolean = disabledTo < dateUtil.now()
+        fun isEnabledAnswer(): Boolean = true
 
         fun option(option: Option): ExamTask {
             options.add(option)
@@ -149,9 +160,34 @@ abstract class Objective(
         }
     }
 
-    class Option internal constructor(var option: TextRef, var isCorrect: Boolean)
+    inner class Option internal constructor(@StringRes var option: Int, var isCorrect: Boolean) {
 
-    class Hint internal constructor(var hint: TextRef)
+        private var cb: CheckBox? = null // TODO: change it, this will block releasing memory
 
-    class Learned internal constructor(var learned: TextRef)
+        fun generate(context: Context): CheckBox {
+            cb = CheckBox(context)
+            cb?.setText(option)
+            return cb!!
+        }
+
+        fun evaluate(): Boolean {
+            val selection = cb!!.isChecked
+            return if (selection && isCorrect) true else !selection && !isCorrect
+        }
+    }
+
+    inner class Hint internal constructor(@StringRes var hint: Int) {
+
+        fun generate(context: Context): TextView {
+            val textView = TextView(context)
+            textView.setText(hint)
+            textView.autoLinkMask = Linkify.WEB_URLS
+            textView.linksClickable = true
+            textView.setLinkTextColor(rh.gac(context, com.google.android.material.R.attr.colorSecondary))
+            Linkify.addLinks(textView, Linkify.WEB_URLS)
+            return textView
+        }
+    }
+
+    inner class Learned internal constructor(@StringRes var learned: Int)
 }
