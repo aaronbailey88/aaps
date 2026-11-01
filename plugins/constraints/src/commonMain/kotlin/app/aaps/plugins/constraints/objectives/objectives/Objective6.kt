@@ -3,6 +3,7 @@ package app.aaps.plugins.constraints.objectives.objectives
 import app.aaps.core.data.model.RM
 import app.aaps.core.data.time.T
 import app.aaps.core.interfaces.aps.Loop
+import app.aaps.core.interfaces.plugin.PluginBase
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.resources.TextResolver
 import app.aaps.core.interfaces.utils.DateUtil

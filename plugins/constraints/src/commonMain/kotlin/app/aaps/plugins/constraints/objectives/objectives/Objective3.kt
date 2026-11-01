@@ -2,6 +2,7 @@ package app.aaps.plugins.constraints.objectives.objectives
 
 import app.aaps.core.interfaces.aps.Loop
 import app.aaps.core.data.time.T
+import app.aaps.core.interfaces.plugin.PluginBase
 import app.aaps.core.interfaces.resources.TextResolver
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.keys.IntNonKey
