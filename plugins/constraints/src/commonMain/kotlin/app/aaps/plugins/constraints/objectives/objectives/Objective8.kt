@@ -23,12 +23,14 @@ class Objective8(
     rh: TextResolver,
     durationText: DurationText,
     dateUtil: DateUtil,
+    private val loop: Loop,
 ) : Objective(preferences, rh, dateUtil, durationText, "smb", ConstraintsStrings.objectives_smb_objective, ConstraintsStrings.objectives_smb_gate) {
 
     init {
-        tasks.add(
-            MinimumDurationTask(this, T.days(28).msecs())
-                .learned(Learned(ConstraintsStrings.objectives_smb_learned))
-        )
+        tasks.add(object : Task(this, ConstraintsStrings.loopenabled) {
+            override suspend fun isCompleted(): Boolean {
+                return (loop as PluginBase).isEnabled()
+            }
+        })
     }
 }

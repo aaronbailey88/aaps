@@ -25,19 +25,15 @@ class Objective4(
     rh: TextResolver,
     durationText: DurationText,
     dateUtil: DateUtil,
+    private val loop: Loop,
     private val profileFunction: ProfileFunction
 ) : Objective(preferences, rh, dateUtil, durationText, "maxbasal", ConstraintsStrings.objectives_maxbasal_objective, ConstraintsStrings.objectives_maxbasal_gate) {
 
     init {
-        tasks.add(
-            object : Task(this, ConstraintsStrings.objectives_maxbasal) {
-                override suspend fun isCompleted(): Boolean {
-                    val profile = profileFunction.getProfile() ?: return false
-                    val maxBasalSet = preferences.getIfExists(DoubleKey.ApsMaxBasal) ?: 0.0
-                    val maxDailyBasal = profile.getMaxDailyBasal()
-                    return maxBasalSet > 2.8 * maxDailyBasal || preferences.simpleMode
-                }
-            }.learned(Learned(ConstraintsStrings.objectives_maxbasal_learned))
-        )
+         tasks.add(object : Task(this, ConstraintsStrings.loopenabled) {
+            override suspend fun isCompleted(): Boolean {
+                return (loop as PluginBase).isEnabled()
+            }
+        })
     }
 }

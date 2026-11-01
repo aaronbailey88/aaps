@@ -23,6 +23,7 @@ class Objective2(
     preferences: Preferences,
     rh: TextResolver,
     durationText: DurationText,
+    private val loop: Loop,
     dateUtil: DateUtil,
 ) : Objective(preferences, rh, dateUtil, durationText, "exam", ConstraintsStrings.objectives_exam_objective, ConstraintsStrings.objectives_exam_gate) {
 

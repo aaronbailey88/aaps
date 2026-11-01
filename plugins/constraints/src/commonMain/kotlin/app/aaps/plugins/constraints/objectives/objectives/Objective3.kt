@@ -24,6 +24,7 @@ class Objective3(
     preferences: Preferences,
     rh: TextResolver,
     durationText: DurationText,
+    private val loop: Loop,
     dateUtil: DateUtil,
 ) : Objective(preferences, rh, dateUtil, durationText, "openloop", ConstraintsStrings.objectives_openloop_objective, ConstraintsStrings.objectives_openloop_gate) {
 

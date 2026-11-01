@@ -23,12 +23,14 @@ class Objective9(
     rh: TextResolver,
     durationText: DurationText,
     dateUtil: DateUtil,
+    private val loop: Loop,
 ) : Objective(preferences, rh, dateUtil, durationText, "auto", ConstraintsStrings.objectives_auto_objective, ConstraintsStrings.objectives_auto_gate) {
 
     init {
-        tasks.add(
-            MinimumDurationTask(this, T.days(28).msecs())
-                .learned(Learned(ConstraintsStrings.objectives_auto_learned))
-        )
+        tasks.add(object : Task(this, ConstraintsStrings.loopenabled) {
+            override suspend fun isCompleted(): Boolean {
+                return (loop as PluginBase).isEnabled()
+            }
+        })
     }
 }
