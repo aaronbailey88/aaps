@@ -32,6 +32,19 @@ class Objective6(
 ) : Objective(preferences, rh, dateUtil, durationText, "maxiob", ConstraintsStrings.objectives_maxiob_objective, ConstraintsStrings.objectives_maxiob_gate) {
 
     init {
-    
+        tasks.add(MinimumDurationTask(this, T.days(1).msecs()))
+        tasks.add(
+            object : Task(this, ConstraintsStrings.closedmodeenabled) {
+                override suspend fun isCompleted(): Boolean = loop.runningMode() == RM.Mode.CLOSED_LOOP
+            })
+        tasks.add(
+            object : Task(this, ConstraintsStrings.maxiobset) {
+
+                override suspend fun isCompleted(): Boolean {
+                    val maxIOB = constraintChecker.getMaxIOBAllowed().value()
+                    return maxIOB > 0
+                }
+            }.learned(Learned(ConstraintsStrings.objectives_maxiob_learned))
+        )
     }
 }

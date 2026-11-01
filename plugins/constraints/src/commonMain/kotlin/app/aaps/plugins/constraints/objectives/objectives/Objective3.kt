@@ -28,7 +28,19 @@ class Objective3(
 ) : Objective(preferences, rh, dateUtil, durationText, "openloop", ConstraintsStrings.objectives_openloop_objective, ConstraintsStrings.objectives_openloop_gate) {
 
     init {
-       
+        tasks.add(MinimumDurationTask(this, T.days(7).msecs()))
+        tasks.add(
+            object : Task(this, ConstraintsStrings.objectives_manualenacts) {
+                override suspend fun isCompleted(): Boolean {
+                    return preferences.get(IntNonKey.ObjectivesManualEnacts) >= MANUAL_ENACTS_NEEDED
+                }
+
+                override suspend fun progress(): String =
+                    if (preferences.get(IntNonKey.ObjectivesManualEnacts) >= MANUAL_ENACTS_NEEDED)
+                        rh.gs(ConstraintsStrings.completed_well_done)
+                    else preferences.get(IntNonKey.ObjectivesManualEnacts).toString() + " / " + MANUAL_ENACTS_NEEDED
+            }.learned(Learned(ConstraintsStrings.objectives_openloop_learned))
+        )
     }
 
     companion object {

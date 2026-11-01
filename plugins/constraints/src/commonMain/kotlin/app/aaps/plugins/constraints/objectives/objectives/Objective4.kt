@@ -29,6 +29,15 @@ class Objective4(
 ) : Objective(preferences, rh, dateUtil, durationText, "maxbasal", ConstraintsStrings.objectives_maxbasal_objective, ConstraintsStrings.objectives_maxbasal_gate) {
 
     init {
-       
+        tasks.add(
+            object : Task(this, ConstraintsStrings.objectives_maxbasal) {
+                override suspend fun isCompleted(): Boolean {
+                    val profile = profileFunction.getProfile() ?: return false
+                    val maxBasalSet = preferences.getIfExists(DoubleKey.ApsMaxBasal) ?: 0.0
+                    val maxDailyBasal = profile.getMaxDailyBasal()
+                    return maxBasalSet > 2.8 * maxDailyBasal || preferences.simpleMode
+                }
+            }.learned(Learned(ConstraintsStrings.objectives_maxbasal_learned))
+        )
     }
 }

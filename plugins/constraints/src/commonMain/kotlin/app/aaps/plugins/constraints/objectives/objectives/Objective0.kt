@@ -45,6 +45,11 @@ class Objective0(
     val tidepoolPlugin get() = activePlugin.getSpecificPluginsListByInterface(Tidepool::class).firstOrNull() as Tidepool?
 
     init {
+        tasks.add(object : Task(this, ConstraintsStrings.objectives_bgavailableinns) {
+            override suspend fun isCompleted(): Boolean {
+                return preferences.get(BooleanNonKey.ObjectivesBgIsAvailableInNs) || tidepoolPlugin?.hasWritePermission == true
+            }
+        })
        
     }
 }

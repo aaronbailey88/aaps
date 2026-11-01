@@ -27,13 +27,10 @@ class Objective2(
 ) : Objective(preferences, rh, dateUtil, durationText, "exam", ConstraintsStrings.objectives_exam_objective, ConstraintsStrings.objectives_exam_gate) {
 
     init {
-       
-        for (task in tasks) (task as ExamTask).options.shuffle()
-
-        // Tasks here are all ExamTasks whose isCompleted() simply returns `answered`.
-        // Read the field directly to avoid suspending in init.
-        for (task in tasks) {
-            if (!(task as ExamTask).answered) accomplishedOn = 0
-        }
+          tasks.add(object : Task(this, ConstraintsStrings.objectives_bgavailableinns) {
+            override suspend fun isCompleted(): Boolean {
+                return preferences.get(BooleanNonKey.ObjectivesBgIsAvailableInNs) || tidepoolPlugin?.hasWritePermission == true
+            }
+        })
     }
 }

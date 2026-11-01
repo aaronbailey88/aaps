@@ -26,6 +26,9 @@ class Objective7(
 ) : Objective(preferences, rh, dateUtil, durationText, "autosens", ConstraintsStrings.objectives_autosens_objective, ConstraintsStrings.objectives_autosens_gate) {
 
     init {
-       
+        tasks.add(
+            MinimumDurationTask(this, T.days(7).msecs())
+                .learned(Learned(ConstraintsStrings.objectives_autosens_learned))
+        )
     }
 }

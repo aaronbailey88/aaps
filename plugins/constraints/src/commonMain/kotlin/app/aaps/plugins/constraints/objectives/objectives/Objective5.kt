@@ -27,6 +27,6 @@ class Objective5(
 ) : Objective(preferences, rh, dateUtil, durationText, "maxiobzero", ConstraintsStrings.objectives_maxiobzero_objective, ConstraintsStrings.objectives_maxiobzero_gate) {
 
     init {
-      
+        tasks.add(MinimumDurationTask(this, T.days(5).msecs()).learned(Learned(ConstraintsStrings.objectives_maxiobzero_learned)))
     }
 }

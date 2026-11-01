@@ -26,6 +26,10 @@ class Objective1(
 ) : Objective(preferences, rh, dateUtil, durationText, "usage", ConstraintsStrings.objectives_usage_objective, ConstraintsStrings.objectives_usage_gate) {
 
     init {
-        
+  tasks.add(object : Task(this, ConstraintsStrings.objectives_bgavailableinns) {
+            override suspend fun isCompleted(): Boolean {
+                return preferences.get(BooleanNonKey.ObjectivesBgIsAvailableInNs) || tidepoolPlugin?.hasWritePermission == true
+            }
+        })       
     }
 }

@@ -26,6 +26,9 @@ class Objective9(
 ) : Objective(preferences, rh, dateUtil, durationText, "auto", ConstraintsStrings.objectives_auto_objective, ConstraintsStrings.objectives_auto_gate) {
 
     init {
-       
+        tasks.add(
+            MinimumDurationTask(this, T.days(28).msecs())
+                .learned(Learned(ConstraintsStrings.objectives_auto_learned))
+        )
     }
 }
