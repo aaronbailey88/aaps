@@ -228,11 +228,6 @@ jobs:
           echo "JAVA_VERSION=$JAVA_VERSION" >> $GITHUB_ENV
           echo "ℹ️ Tag $TAG → JDK $JAVA_VERSION (from jdk-map.json)"
 
-      - name: Switch to selected tag
-        run: |
-          git checkout refs/tags/${{ github.event.inputs.tagName }}
-          echo "✅ Checked out tag ${{ github.event.inputs.tagName }}"
-
       - name: Set BUILD_VARIANT
         run: |
           BUILD_VARIANT="${{ github.event.inputs.buildVariant }}"
