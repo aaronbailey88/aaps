@@ -36,63 +36,6 @@ class Objective0 @Inject constructor(
     val tidepoolPlugin get() = activePlugin.getSpecificPluginsListByInterface(Tidepool::class.java).firstOrNull() as Tidepool?
 
     init {
-        tasks.add(object : Task(this, R.string.objectives_bgavailableinns) {
-            override fun isCompleted(): Boolean {
-                return preferences.get(BooleanNonKey.ObjectivesBgIsAvailableInNs) || tidepoolPlugin?.hasWritePermission == true
-            }
-        })
-        tasks.add(object : Task(this, R.string.synchaswritepermission) {
-            override fun isCompleted(): Boolean {
-                return activePlugin.firstActiveSync?.hasWritePermission == true || tidepoolPlugin?.hasWritePermission == true
-            }
-        })
-        tasks.add(object : Task(this, app.aaps.core.ui.R.string.virtualpump_uploadstatus_title) {
-            override fun isCompleted(): Boolean {
-                return preferences.get(BooleanKey.VirtualPumpStatusUpload) || tidepoolPlugin?.hasWritePermission == true
-            }
-
-            override fun shouldBeIgnored(): Boolean {
-                return !virtualPumpPlugin.isEnabled()
-            }
-        })
-        tasks.add(
-            object : Task(this, R.string.objectives_pumpstatusavailableinns) {
-                override fun isCompleted(): Boolean {
-                    return preferences.get(BooleanNonKey.ObjectivesPumpStatusIsAvailableInNS) || tidepoolPlugin?.hasWritePermission == true
-                }
-            }.learned(Learned(R.string.objectives_0_learned))
-        )
-        tasks.add(object : Task(this, R.string.hasbgdata) {
-            override fun isCompleted(): Boolean {
-                return iobCobCalculator.ads.lastBg() != null
-            }
-        })
-        tasks.add(object : Task(this, R.string.loopenabled) {
-            override fun isCompleted(): Boolean {
-                return (loop as PluginBase).isEnabled()
-            }
-        })
-        tasks.add(object : Task(this, R.string.apsselected) {
-            override fun isCompleted(): Boolean {
-                val usedAPS = activePlugin.activeAPS
-                return (usedAPS as PluginBase).isEnabled()
-            }
-        })
-        tasks.add(object : Task(this, app.aaps.core.ui.R.string.activate_profile) {
-            override fun isCompleted(): Boolean = persistenceLayer.getEffectiveProfileSwitchActiveAt(dateUtil.now()) != null
-        })
-        tasks.add(
-            UITask(this, R.string.verify_master_password, "master_password") { context, task, callback ->
-                if (preferences.get(StringKey.ProtectionMasterPassword) == "") {
-                    ToastUtils.errorToast(context, app.aaps.core.ui.R.string.master_password_not_set)
-                } else {
-                    passwordCheck.queryPassword(context, app.aaps.core.ui.R.string.master_password, StringKey.ProtectionMasterPassword,
-                                                ok = {
-                                                    task.answered = true
-                                                    callback.run()
-                                                })
-                }
-            }
-        )
+      
     }
 }
