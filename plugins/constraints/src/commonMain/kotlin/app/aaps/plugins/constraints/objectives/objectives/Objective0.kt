@@ -7,22 +7,32 @@ import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.plugin.PluginBase
 import app.aaps.core.interfaces.protection.PasswordCheck
 import app.aaps.core.interfaces.pump.VirtualPump
-import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.resources.TextResolver
 import app.aaps.core.interfaces.sync.Tidepool
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.BooleanNonKey
 import app.aaps.core.keys.StringKey
 import app.aaps.core.keys.interfaces.Preferences
-import app.aaps.core.ui.toast.ToastUtils
-import app.aaps.plugins.constraints.R
-import javax.inject.Inject
-import javax.inject.Singleton
+import app.aaps.core.ui.CoreUiStrings
+import app.aaps.plugins.constraints.ConstraintsStrings
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.IntKey
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 
-@Singleton
-class Objective0 @Inject constructor(
+// Contributed rather than listed in a graph. ObjectivesPlugin takes List<Objective> and is itself
+// contributed to AppScope, so the objectives have to be reachable from the same graph.
+@ContributesIntoMap(AppScope::class, binding = binding<Objective>())
+@IntKey(0)
+@SingleIn(AppScope::class)
+@Inject
+class Objective0(
     preferences: Preferences,
-    rh: ResourceHelper,
+    rh: TextResolver,
+    durationText: DurationText,
     dateUtil: DateUtil,
     private val activePlugin: ActivePlugin,
     private val virtualPumpPlugin: VirtualPump,
@@ -30,12 +40,11 @@ class Objective0 @Inject constructor(
     private val loop: Loop,
     private val iobCobCalculator: IobCobCalculator,
     private val passwordCheck: PasswordCheck,
-) : Objective(preferences, rh, dateUtil, "config", R.string.objectives_0_objective, R.string.objectives_0_gate) {
+) : Objective(preferences, rh, dateUtil, durationText, "config", ConstraintsStrings.objectives_0_objective, ConstraintsStrings.objectives_0_gate) {
 
-
-    val tidepoolPlugin get() = activePlugin.getSpecificPluginsListByInterface(Tidepool::class.java).firstOrNull() as Tidepool?
+    val tidepoolPlugin get() = activePlugin.getSpecificPluginsListByInterface(Tidepool::class).firstOrNull() as Tidepool?
 
     init {
-      
+       
     }
 }

@@ -1,26 +1,39 @@
 package app.aaps.plugins.constraints.objectives.objectives
 
-import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.resources.TextResolver
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.keys.interfaces.Preferences
-import app.aaps.plugins.constraints.R
-import javax.inject.Inject
-import javax.inject.Singleton
+import app.aaps.core.ui.CoreUiStrings
+import app.aaps.plugins.constraints.ConstraintsStrings
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.IntKey
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 
 @Suppress("SpellCheckingInspection")
-@Singleton
-class Objective2 @Inject constructor(
+// Contributed rather than listed in a graph. ObjectivesPlugin takes List<Objective> and is itself
+// contributed to AppScope, so the objectives have to be reachable from the same graph.
+@ContributesIntoMap(AppScope::class, binding = binding<Objective>())
+@IntKey(2)
+@SingleIn(AppScope::class)
+@Inject
+class Objective2(
     preferences: Preferences,
-    rh: ResourceHelper,
+    rh: TextResolver,
+    durationText: DurationText,
     dateUtil: DateUtil,
-) : Objective(preferences, rh, dateUtil, "exam", R.string.objectives_exam_objective, R.string.objectives_exam_gate) {
+) : Objective(preferences, rh, dateUtil, durationText, "exam", ConstraintsStrings.objectives_exam_objective, ConstraintsStrings.objectives_exam_gate) {
 
     init {
-     
+       
         for (task in tasks) (task as ExamTask).options.shuffle()
 
+        // Tasks here are all ExamTasks whose isCompleted() simply returns `answered`.
+        // Read the field directly to avoid suspending in init.
         for (task in tasks) {
-            if (!task.isCompleted()) accomplishedOn = 0
+            if (!(task as ExamTask).answered) accomplishedOn = 0
         }
     }
 }
