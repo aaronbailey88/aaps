@@ -27,9 +27,9 @@ class Objective2(
 ) : Objective(preferences, rh, dateUtil, durationText, "exam", ConstraintsStrings.objectives_exam_objective, ConstraintsStrings.objectives_exam_gate) {
 
     init {
-          tasks.add(object : Task(this, ConstraintsStrings.objectives_bgavailableinns) {
+          tasks.add(object : Task(this, ConstraintsStrings.loopenabled) {
             override suspend fun isCompleted(): Boolean {
-                return preferences.get(BooleanNonKey.ObjectivesBgIsAvailableInNs) || tidepoolPlugin?.hasWritePermission == true
+                return (loop as PluginBase).isEnabled()
             }
         })
     }
