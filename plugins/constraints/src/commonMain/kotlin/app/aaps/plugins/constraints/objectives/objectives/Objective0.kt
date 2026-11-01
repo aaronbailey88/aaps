@@ -45,64 +45,10 @@ class Objective0(
     val tidepoolPlugin get() = activePlugin.getSpecificPluginsListByInterface(Tidepool::class).firstOrNull() as Tidepool?
 
     init {
-        tasks.add(object : Task(this, ConstraintsStrings.objectives_bgavailableinns) {
-            override suspend fun isCompleted(): Boolean {
-                return preferences.get(BooleanNonKey.ObjectivesBgIsAvailableInNs) || tidepoolPlugin?.hasWritePermission == true
-            }
-        })
-        tasks.add(object : Task(this, ConstraintsStrings.synchaswritepermission) {
-            override suspend fun isCompleted(): Boolean {
-                return activePlugin.firstActiveSync?.hasWritePermission == true || tidepoolPlugin?.hasWritePermission == true
-            }
-        })
-        tasks.add(object : Task(this, CoreUiStrings.virtualpump_uploadstatus_title) {
-            override suspend fun isCompleted(): Boolean {
-                return preferences.get(BooleanKey.VirtualPumpStatusUpload) || tidepoolPlugin?.hasWritePermission == true
-            }
-
-            override fun shouldBeIgnored(): Boolean {
-                return !(virtualPumpPlugin as PluginBase).isEnabled()
-            }
-        })
-        tasks.add(
-            object : Task(this, ConstraintsStrings.objectives_pumpstatusavailableinns) {
-                override suspend fun isCompleted(): Boolean {
-                    return preferences.get(BooleanNonKey.ObjectivesPumpStatusIsAvailableInNS) || tidepoolPlugin?.hasWritePermission == true
-                }
-            }.learned(Learned(ConstraintsStrings.objectives_0_learned))
-        )
-        tasks.add(object : Task(this, ConstraintsStrings.hasbgdata) {
-            override suspend fun isCompleted(): Boolean {
-                return iobCobCalculator.ads.lastBg() != null
-            }
-        })
-        tasks.add(object : Task(this, ConstraintsStrings.loopenabled) {
+         tasks.add(object : Task(this, ConstraintsStrings.loopenabled) {
             override suspend fun isCompleted(): Boolean {
                 return (loop as PluginBase).isEnabled()
             }
-        })
-        tasks.add(object : Task(this, ConstraintsStrings.apsselected) {
-            override suspend fun isCompleted(): Boolean {
-                val usedAPS = activePlugin.activeAPS ?: return false
-                return (usedAPS as PluginBase).isEnabled()
-            }
-        })
-        tasks.add(object : Task(this, CoreUiStrings.activate_profile) {
-            override suspend fun isCompleted(): Boolean = persistenceLayer.getEffectiveProfileSwitchActiveAt(dateUtil.now()) != null
-        })
-        tasks.add(
-            UITask(this, ConstraintsStrings.verify_master_password, "master_password") { task, callback, showMessage ->
-                if (preferences.get(StringKey.ProtectionMasterPassword) == "") {
-                    showMessage(rh.gs(CoreUiStrings.master_password_not_set))
-                } else {
-                    passwordCheck.queryPassword(
-                        StringKey.ProtectionMasterPassword.title, StringKey.ProtectionMasterPassword,
-                        ok = {
-                            task.answered = true
-                            callback.run()
-                        })
-                }
-            }
-        )
+        }) 
     }
 }
